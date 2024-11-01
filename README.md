@@ -1,2 +1,2 @@
 # Flowmon Integrations
-This is a place for the supported integrations. We are publishing here are the integrations which we want to maintain. In case you would have a trouble with any of these please reach to the support team and we will try to help you.
+This repository contains supported integrations with third-party products. The Progress will publish and maintain updates to these integrations here. If you encounter any issues, please contact the support team.
