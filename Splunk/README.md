@@ -2,6 +2,6 @@
 
 The script integrates Flowmon ADS with Splunk HEC.
 
-[Integration guide]()
+[Integration guide](/Splunk/Flowmon_ADS_Slack_Integration.pdf)
 
-[Integration script]()
+[Integration script](/Splunk/slack-webhook.sh)
