@@ -2,6 +2,6 @@
 
 Here you will find a configuration guide for integration with Superna Eyeglass Ransomware defender and simple script to trigger the action.
 
-[Integration guide]()
+[Integration guide](/Superna/Configuration_Guide-Flowmon_Superna.pdf)
 
-[Integration script]()
+[Integration script](/Superna/superna-rd.sh)
