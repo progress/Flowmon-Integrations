@@ -21,8 +21,6 @@ Guide on how to use the package. If you don't know how to use scripts in ADS ple
 
 [Integration guide](/Fortinet/FortiGate/FortiGate_input_traffic_blocking.pdf)
 
-## AG Mitigation Package version 1.1
-
-Flowmon package to add support for input traffic blocking. How to use it is described in document FortiGate input traffic blocking document. 
+You would need the following ZIP file which packs together the scripts with configuration.
 
 [Download file](/Fortinet/FortiGate/fgt-mitigation.zip)
