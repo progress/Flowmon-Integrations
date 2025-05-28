@@ -8,7 +8,7 @@ You can find the available supported integrations in the table below. Depending 
 | [Check Point](/Check%20Point)                                                 | Flowmon ADS     | Custom script       |
 | [Dell ECS](/Dell%20ECS)                                                       | Flowmon ADS     | Custom script       |
 | [Dell PowerScale](/Dell%20PowerScale)                                         | Flowmon ADS     | Custom script       |
-| [FortiGate](/FortiGate)                                                     | Flowmon ADS     | Custom script       |
+| [FortiGate](/Fortinet/FortiGate)                                              | Flowmon ADS     | Custom script       |
 | [FortiSIEM](/Fortinet/FortiSIEM)                                            | Flowmon ADS     | Syslog              |
 | [IBM QRadar](/IBM%20QRadar)                                                   | Flowmon ADS  | Application for QRadar    |
 | [Logmanager](/Logmanager)                                                   | Flowmon ADS     | Syslog              |
