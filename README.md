@@ -10,6 +10,7 @@ You can find the available supported integrations in the table below. Depending 
 | [Dell PowerScale](/Dell%20PowerScale)                                         | Flowmon ADS     | Custom script       |
 | [FortiGate](/FortiGate)                                                     | Flowmon ADS     | Custom script       |
 | [FortiSIEM](/Fortinet/FortiSIEM)                                            | Flowmon ADS     | Syslog              |
+| [IBM QRadar](/IBM%20QRadar)                                                   | Flowmon ADS  | Application for QRadar    |
 | [Logmanager](/Logmanager)                                                   | Flowmon ADS     | Syslog              |
 | [Microsoft Teams](/Microsoft%20Teams)                                         | Flowmon ADS     | Custom script       |
 | [ProLion](/ProLion)                                                         | Flowmon ADS     | Custom script       |
@@ -22,7 +23,7 @@ You can find the available supported integrations in the table below. Depending 
 | [NBIP NaWas](/Flowmon%20DDoS%20Defender%20Integrations/NBIP%20NaWas)                | Flowmon DDoS Defender    | Guide                   |
 | [Radware DefensePro](/Flowmon%20DDoS%20Defender%20Integrations/Radware%20DefensePro) | Flowmon DDoS Defender    | Native                   |
 | [Mikrotik](/Mikrotik)                                                       | Flowmon Data Retention | Guide      |
-| [IBM QRadar](/IBM%20QRadar)                                                   | Flowmon ADS  | Application for QRadar    |
+
 
 ## Downloading Files from GitHub
 To download a file from this repository:
