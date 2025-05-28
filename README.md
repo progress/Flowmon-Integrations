@@ -3,12 +3,6 @@ This repository contains supported integrations with third-party products. The P
 
 You can find the available supported integrations in the table below. Depending on the type of integration, you may find the corresponding integration script, setup instructions, or other related resources in the respective folders.
 
-## Downloading Files from GitHub
-To download a file from this repository:
-- Navigate to the file in the GitHub interface.
-- Click on the file name to open it.
-- Click the "Download" button (or right-click "Raw" and choose "Save link as..." to save the file to your computer).
-
 | Third-party Product or Vendor                                               | Integration for | Type of Integration |
 |-----------------------------------------------------------------------------|-----------------|---------------------|
 | [Check Point](/Check%20Point)                                                 | Flowmon ADS     | Custom script       |
@@ -30,5 +24,10 @@ To download a file from this repository:
 | [Mikrotik](/Mikrotik)                                                       | Flowmon Data Retention | Guide      |
 | [IBM QRadar](/IBM%20QRadar)                                                   | Flowmon ADS  | Application for QRadar    |
 
+## Downloading Files from GitHub
+To download a file from this repository:
+- Navigate to the file in the GitHub interface.
+- Click on the file name to open it.
+- Click the "Download" button (or right-click "Raw" and choose "Save link as..." to save the file to your computer).
 
  A set of various unsupported scripts and integrations is also available. [here](https://github.com/progress/Flowmon-Various-Scripts).
