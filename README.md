@@ -12,16 +12,13 @@ You can find the available supported integrations in the table below. Depending 
 | [FortiSIEM](/Fortinet/FortiSIEM)                                            | Flowmon ADS     | Syslog              |  -  |
 | [IBM QRadar](/IBM%20QRadar)                                                   | Flowmon ADS  | Application for QRadar    |  -  |
 | [Logmanager](/Logmanager)                                                   | Flowmon ADS     | Syslog              |  -  |
-| [Microsoft Teams](/Microsoft%20Teams)                                         | Flowmon ADS     | Custom script       |  No  |
+| [Microsoft Teams](/Microsoft%20Teams)                                         | Flowmon ADS     | Custom script       |  Yes  |
 | [ProLion](/ProLion)                                                         | Flowmon ADS     | Custom script       |  No  |
 | [ServiceNow](/ServiceNow)                                                   | Flowmon ADS     | Custom script       |  No  |
 | [Slack](/Slack)                                                             | Flowmon ADS     | Custom script       |  No  |
 | [Splunk](/Splunk)                                                           | Flowmon ADS     | Custom script       |  No  |
 | [Superna](/Superna)                                                         | Flowmon ADS     | Custom script       |  No  |
 | [Veeam](/Veeam%20Backup%20&%20Replication)                                        | Flowmon ADS     | Custom script       |  No  |
-| [F5](/Flowmon%20DDoS%20Defender%20Integrations/F5)                                | Flowmon DDoS Defender    | Native                   |  -  |
-| [NBIP NaWas](/Flowmon%20DDoS%20Defender%20Integrations/NBIP%20NaWas)                | Flowmon DDoS Defender    | Guide                   |  -  |
-| [Radware DefensePro](/Flowmon%20DDoS%20Defender%20Integrations/Radware%20DefensePro) | Flowmon DDoS Defender    | Native                   |  -  |
 | [Mikrotik](/Mikrotik)                                                       | Flowmon Data Retention | Guide      |  -  |
 
 
