@@ -8,9 +8,9 @@
 DEBUG=1
 TEST=0
 # Incoming webhook URL
-WEBHOOK='https://test.webhook.office.com/your-url-here'
+WEBHOOK='https://<Your-URL-HERE>'
 # hostname / IP of Flowmon Web UI for links in the messages
-flowmon='10.100.24.66'
+flowmon='<Your-Flowmon>'
 
 function usage {
     cat << EOF >&2
@@ -43,7 +43,7 @@ while true
 do
     case $1 in
         -w|--webhook)
-            WEBHOOK=("${2-}")
+            #WEBHOOK=("${2-}")
             shift 2
             ;;
         -f|--flowmon)
@@ -158,6 +158,19 @@ do
     if [ -n "$tmp_uid" ]; then
         uid="**${array[14]}**"
     fi
+    # we attempt to translate hostname
+    source=`host ${array[10]} | cut -d' ' -f 5`
+    if [[ ${source} =~ 'NXDOMAIN' ]]; then
+        source=${array[10]}
+    else
+        source="${source} (${array[10]})"
+    fi
+    target=`host ${array[12]} | cut -d' ' -f 5`
+    if [[ ${target} =~ 'NXDOMAIN' ]]; then
+        target=${array[12]}
+    else
+        target="${target} (${array[12]})"
+    fi
     data="{ \
     \"type\": \"message\", \
     \"attachments\": [ \
@@ -190,12 +203,12 @@ do
                             }, \
                             { \
                                 \"type\": \"TextBlock\", \
-                                \"text\": \"Source: **${array[10]}**, User identity: $uid\", \
+                                \"text\": \"Source: **${source}**, User identity: $uid\", \
                                 \"wrap\": true \
                             }, \
                             { \
                                 \"type\": \"TextBlock\", \
-                                \"text\": \"Targets: ${array[12]}\" \
+                                \"text\": \"Targets: ${target}\" \
                             }, \
                             { \
                                 \"type\": \"TextBlock\", \
