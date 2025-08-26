@@ -1,8 +1,10 @@
-Flowmon ADS Integration with Teams
+# Flowmon ADS Integration with Teams
 
-Microsoft Teams Workflow Script usage
+## Microsoft Teams Workflow Script usage
 
-Teams Configuration
+Those steps are ment for the Python script teamw-webhook.py present in this directory.
+
+### Teams Configuration
 
 Configure incoming webhook as it is described at
 <https://support.microsoft.com/en-us/office/create-incoming-webhooks-with-workflows-for-microsoft-teams-8ae491c7-0394-4861-ba59-055e33f75498>
@@ -11,7 +13,7 @@ You need to select which group it should be sent to and when you follow
 the above guide it should get HTTP URL where the script will send (POST)
 the message.
 
-**Flowmon ADS Configuration**
+### **Flowmon ADS Configuration**
 
 This script has been tested with Flowmon ADS 12.5.2 and expects the
 Extended values to be enabled as well as you can use both formats. It
@@ -24,8 +26,7 @@ of the Flowmon ADS.
 You have two options to provide the parameters in the script itself
 before uploading.
 
-![](media/script-configuration.png){width="5.745138888888889in"
-height="0.3763888888888889in"}
+![](media/script-configuration.png)
 
 Or to provide these by parameters when after uploading and specifying
 the URL and your Flowmon web UI hostname or IP address.
@@ -37,43 +38,31 @@ option would be to use some internal URL shortening but I would not
 share it with some online ones as the URL is sensitive information and
 anyone with it can use to for posting the data.
 
-usage: teams-webhook.py \[-h\] \[-f FLOWMON\] \[-w WEBHOOK\] \[-t\]
-\[-j\]
+```
+usage: teams-webhook.py [-h] [-f FLOWMON] [-w WEBHOOK] [-t] [-j]
 
 options:
 
 -h, \--help show this help message and exit
-
--f FLOWMON, \--flowmon FLOWMON
-
-IP address or URL of the local Flowmon appliance
-
--w WEBHOOK, \--webhook WEBHOOK
-
-Microsoft Teams Webhook URL
-
+-f FLOWMON, \--flowmon FLOWMON IP address or URL of the local Flowmon appliance
+-w WEBHOOK, \--webhook WEBHOOK Microsoft Teams Webhook URL
 -t, \--test Send test message
-
 -j, \--json Use new JSON format
-
+```
 For example, we can create a custom script with those parameters to be
 different from default.
 
-![](media/new-custom-script.png){width="5.745138888888889in"
-height="3.6909722222222223in"}
+![](media/new-custom-script.png)
 
 And then configure action if you are using the parameters you can modify
 them there.
 
-![](media/action.png){width="5.745138888888889in"
-height="5.259027777777778in"}
+![](media/action.png)
 
 You can also test it from any Linux machine when you use parameter test.
 The output in teams looks like in the image below.
 
-![A screenshot of a computer AI-generated content may be
-incorrect.](media/sampe-message.png){width="3.969304461942257in"
-height="2.50034886264217in"}
+![A screenshot of a sample message.](media/sample-message.png)
 
 There is one limitation I encountered
 
@@ -83,7 +72,7 @@ There is one limitation I encountered
 So, when you have a private chat you need to post as yourself which
 makes the new messages invisible to you.
 
-**These below lines are related to the original Bash shell script**
+## These below lines are related to the original Bash shell script
 
 Microsoft Teams Incoming Webhook Script Usage
 
@@ -96,7 +85,7 @@ You only need to select a group and add connector there. This webhook
 will provide you with HTTPs URL where the script will send (POST) the
 messages.
 
-![](media/webhook.png){width="5.0in" height="2.40625in"}
+![](media/webhook.png)
 
 There is a limitation on how many messages could be sent through the
 webhook. The details are available at
