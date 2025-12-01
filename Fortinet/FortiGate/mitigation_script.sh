@@ -7,7 +7,7 @@
 # Debug 1 = yes, 0 = no
 DEBUG=1
 
-[ $DEBUG -ne 0 ] && echo `date` "Starting mitigation script" >> /data/components/apps/log//fg-mitigation.log
+[ $DEBUG -ne 0 ] && echo `date` "Starting mitigation script" >> /data/components/apps/log/fg-mitigation.log
 
 # Management IP/hostname of Firewall/ Core device
 IP='192.168.47.28'
@@ -37,10 +37,10 @@ params="$(getopt -o f:t:k:h -l fw:,timeout:,key:,help --name "mitigation_script.
 if [ $? -ne 0 ]
 then
     usage
-    [ $DEBUG -ne 0 ] && echo `date` "Got to usage." >> /data/components/apps/log//fg-mitigation.log
+    [ $DEBUG -ne 0 ] && echo `date` "Got to usage." >> /data/components/apps/log/fg-mitigation.log
 fi
 
-[ $DEBUG -ne 0 ] && echo `date` "Params $params" >> /data/components/apps/log//fg-mitigation.log
+[ $DEBUG -ne 0 ] && echo `date` "Params $params" >> /data/components/apps/log/fg-mitigation.log
 
 eval set -- "$params"
 unset params
@@ -76,7 +76,7 @@ done
 # we dont support any other args
 [ $# -gt 0 ] && {
     usage
-    [ $DEBUG -ne 0 ] &&  echo `date`  "INFO: Too many arguments. Got to usage." >> /data/components/apps/log//fg-mitigation.log 2>&1
+    [ $DEBUG -ne 0 ] &&  echo `date`  "INFO: Too many arguments. Got to usage." >> /data/components/apps/log/fg-mitigation.log 2>&1
 }
 
 cat << EOF >&2
@@ -88,7 +88,7 @@ TOKEN = $TOKEN
 ---------------------------------------
 EOF
 
-[ $DEBUG -ne 0 ] && cat >> /data/components/apps/log//fg-mitigation.log << EOF >&2
+[ $DEBUG -ne 0 ] && cat >> /data/components/apps/log/fg-mitigation.log << EOF >&2
 -----  My params are ------------------
 FW = $IP
 API KEY = $API_KEY
@@ -103,21 +103,43 @@ LINE_NUM=1
 array=()
 while read line
 do
-    IFS=$'\t'
-    array=($line)
-    echo "$LINE_NUM - ID ${array[0]} - type ${array[4]} - source ${array[10]}"
-    [ $DEBUG -ne 0 ] &&  echo "$LINE_NUM - ID ${array[0]} - type ${array[4]} - source ${array[10]}" >> /data/components/apps/log//fg-mitigation.log 2>&1
-    
-    LINE_NUM=$((LINE_NUM+1))
+    # Check the number of fields
+    field_count=$(echo "$line" | awk -F'\t' '{print NF}')
+    if [ "$field_count" -eq 16 ]; then
+        [ $DEBUG -ne 0 ] &&  echo `date` "Processing ADS event..." >> /data/components/apps/log/fg-mitigation.log 
+        echo "Processing ADS event..."
+        IFS=$'\t'
+        array=($line)
+        echo "$LINE_NUM - ID ${array[0]} - type ${array[3]} - source ${array[12]}"
+        [ $DEBUG -ne 0 ] &&  echo "$LINE_NUM - ID ${array[0]} - type ${array[3]} - source ${array[12]}" >> /data/components/apps/log/fg-mitigation.log 2>&1
+        
+        LINE_NUM=$((LINE_NUM+1))
 
-    # BAN the source IP of the event
-    if [ $DEBUG -ne 0 ]; then
-        /usr/bin/curl -k -X POST -H "Content-Type": "application/json" --data "{ \"ip_addresses\": [\"${array[10]}\"], \"expiry\": $TIMEOUT}" $BAN >> /data/components/apps/log//fg-mitigation.log 2>&1
+        # BAN the source IP of the event
+        if [ $DEBUG -ne 0 ]; then
+            /usr/bin/curl -k -X POST -H "Content-Type": "application/json" --data "{ \"ip_addresses\": [\"${array[12]}\"], \"expiry\": $TIMEOUT}" $BAN >> /data/components/apps/log/fg-mitigation.log 2>&1
+        else
+            /usr/bin/curl -k -X POST -H "Content-Type": "application/json" --data "{ \"ip_addresses\": [\"${array[12]}\"], \"expiry\": $TIMEOUT}" $BAN
+        fi
     else
-        /usr/bin/curl -k -X POST -H "Content-Type": "application/json" --data "{ \"ip_addresses\": [\"${array[10]}\"], \"expiry\": $TIMEOUT}" $BAN
+        [ $DEBUG -ne 0 ] &&  echo `date` "Processing IDS event..." >> /data/components/apps/log/fg-mitigation.log
+        echo "Processing IDS event..."
+        IFS=$'\t'
+        array=($line)
+        echo "$LINE_NUM - ID ${array[0]} - type ${array[9]} - source ${array[3]}"
+        [ $DEBUG -ne 0 ] &&  echo "$LINE_NUM - ID ${array[0]} - type ${array[9]} - source ${array[3]}" >> /data/components/apps/log/fg-mitigation.log 2>&1
+        
+        LINE_NUM=$((LINE_NUM+1))
+
+        # BAN the source IP of the event
+        if [ $DEBUG -ne 0 ]; then
+            /usr/bin/curl -k -X POST -H "Content-Type": "application/json" --data "{ \"ip_addresses\": [\"${array[3]}\"], \"expiry\": $TIMEOUT}" $BAN >> /data/components/apps/log/fg-mitigation.log 2>&1
+        else
+            /usr/bin/curl -k -X POST -H "Content-Type": "application/json" --data "{ \"ip_addresses\": [\"${array[3]}\"], \"expiry\": $TIMEOUT}" $BAN
+        fi
     fi
 
 done < /dev/stdin
 
 echo "---- Everything completed ----"
-[ $DEBUG -ne 0 ] &&  echo `date` "---- Everything completed ----" >> /data/components/apps/log//fg-mitigation.log
+[ $DEBUG -ne 0 ] &&  echo `date` "---- Everything completed ----" >> /data/components/apps/log/fg-mitigation.log
