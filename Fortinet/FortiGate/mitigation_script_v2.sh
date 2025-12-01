@@ -2,8 +2,8 @@
 
 # Author: Jiri Knapek
 # Description: This script is to quarantine IP or MAC on Fortigate Firewalls and Security Fabric
-# Version: 2.1
-# Date: 9/16/2020
+# Version: 2.2
+# Date: 12/1/2025
 # Debug 1 = yes, 0 = no
 DEBUG=1
 
@@ -16,7 +16,7 @@ PASS='admin'
 IP='192.168.47.28'
 WEBHOOK='FlowmonADS'
 API_KEY='fp8114zdNpjp8Qf8zN4Hdp57dhgjjf'
-MAC=1
+MAC=0
 HTTPS=443
 
 URL="https://$IP:$HTTPS/api/v2/monitor/system/automation-stitch/webhook/$WEBHOOK"
@@ -104,11 +104,11 @@ then
     OUTPUT="$(/usr/bin/curl "https://localhost/resources/oauth/token" -k -d 'grant_type=password' -d 'client_id=invea-tech' -d "username=$USER" -d "password=$PASS")"
     TOKEN=""
 
-    echo "${OUTPUT}" > /data/components/apps/log//access_token.json
+    echo "${OUTPUT}" > /data/components/apps/log/access_token.json
 
     if [[ $OUTPUT == *"access_token"* ]]; then
         [ $DEBUG -ne 0 ] && echo `date` "Successfully authenticated to Flowmon Collector!" >> /data/components/apps/log/fg-mitigation.log
-        TOKEN="$(cat /data/components/apps/log//access_token.json | jq '.access_token')"
+        TOKEN="$(cat /data/components/apps/log/access_token.json | jq '.access_token')"
         TOKEN="${TOKEN//\"}"
         TOKEN="Authorization: bearer "$TOKEN
     fi
@@ -140,35 +140,58 @@ LINE_NUM=1
 array=()
 while read line
 do
-    IFS=$'\t'
-    array=($line)
-    echo "$LINE_NUM - ID ${array[0]} - type ${array[4]} - source ${array[10]}"
-    [ $DEBUG -ne 0 ] &&  echo "$LINE_NUM - ID ${array[0]} - type ${array[4]} - source ${array[10]}" >> /data/components/apps/log/fg-mitigation.log 2>&1
+    # Check the number of fields
+    field_count=$(echo "$line" | awk -F'\t' '{print NF}')
+    if [ "$field_count" -eq 16 ]; then
+        [ $DEBUG -ne 0 ] &&  echo `date` "Processing ADS event..." >> /data/components/apps/log/fg-mitigation.log 
+        echo "Processing ADS event..."
+        IFS=$'\t'
+        array=($line)
+        echo "$LINE_NUM - ID ${array[0]} - type ${array[3]} - source ${array[12]}"
+        [ $DEBUG -ne 0 ] &&  echo "$LINE_NUM - ID ${array[0]} - type ${array[3]} - source ${array[12]}" >> /data/components/apps/log/fg-mitigation.log 2>&1
 
-    # Call a webhook
-    if [ $MAC -ne 0 ];
-    then
-        MAC_ADDR="$(/usr/bin/curl "https://localhost/rest/ads/event/${array[0]}" -G -k -H "$TOKEN"  | jq '.macAddress')"
-        if [ $DEBUG -ne 0 ]; then
-            echo `date` "Event IP address: ${array[10]}, MAC address $MAC_ADDR" >> /data/components/apps/log/fg-mitigation.log 2>&1
-            /usr/bin/curl -o /dev/null -s -w "%{http_code}\n" -k -X POST -H "Authorization: Bearer $API_KEY" --data "{ \"srcip\": \"${array[10]}\", \"mac\": $MAC_ADDR, \"fctuid\": \"A8BA0B12DA694E47BA4ADF24F8358E2F\"}" $URL >> /data/components/apps/log//fg-mitigation.log 2>&1
-            echo `date` "CURL result code $?"
+        # Call a webhook
+        if [ $MAC -ne 0 ];
+        then
+            MAC_ADDR="$(/usr/bin/curl "https://localhost/rest/ads/event/${array[0]}" -G -k -H "$TOKEN"  | jq '.macAddress')"
+            if [ $DEBUG -ne 0 ]; then
+                echo `date` "Event IP address: ${array[12]}, MAC address $MAC_ADDR" >> /data/components/apps/log/fg-mitigation.log 2>&1
+                /usr/bin/curl -o /dev/null -s -w "%{http_code}\n" -k -X POST -H "Authorization: Bearer $API_KEY" --data "{ \"srcip\": \"${array[12]}\", \"mac\": $MAC_ADDR, \"fctuid\": \"A8BA0B12DA694E47BA4ADF24F8358E2F\"}" $URL >> /data/components/apps/log/fg-mitigation.log 2>&1
+                echo `date` "CURL result code $?"
 
+            else
+                /usr/bin/curl -k -X POST -H "Authorization: Bearer $API_KEY" --data "{ \"srcip\": \"${array[12]}\", \"mac\": $MAC_ADDR, \"fctuid\": \"A8BA0B12DA694E47BA4ADF24F8358E2F\"}" $URL
+            fi
         else
-            /usr/bin/curl -k -X POST -H "Authorization: Bearer $API_KEY" --data "{ \"srcip\": \"${array[10]}\", \"mac\": $MAC_ADDR, \"fctuid\": \"A8BA0B12DA694E47BA4ADF24F8358E2F\"}" $URL
+            if [ $DEBUG -ne 0 ]; then
+                echo `date` "Event IP address: ${array[12]}" >> /data/components/apps/log/fg-mitigation.log 2>&1
+                /usr/bin/curl  -o /dev/null -s -w "%{http_code}\n" -k -X POST -H "Authorization: Bearer $API_KEY" --data "{ \"srcip\": \"${array[12]}\",  \"fctuid\": \"A8BA0B12DA694E47BA4ADF24F8358E2F\"}" $URL >> /data/components/apps/log/fg-mitigation.log 2>&1
+                echo `date` "CURL result code $?"
+            else
+                /usr/bin/curl -k -X POST -H "Authorization: Bearer $API_KEY" --data "{ \"srcip\": \"${array[12]}\",  \"fctuid\": \"A8BA0B12DA694E47BA4ADF24F8358E2F\"}" $URL
+            fi
         fi
+
+        LINE_NUM=$((LINE_NUM+1))
     else
+        [ $DEBUG -ne 0 ] &&  echo `date` "Processing IDS event..." >> /data/components/apps/log/fg-mitigation.log
+        echo "Processing IDS event..."
+        IFS=$'\t'
+        array=($line)
+        echo "$LINE_NUM - ID ${array[0]} - type ${array[9]} - source ${array[3]}"
+        [ $DEBUG -ne 0 ] &&  echo "$LINE_NUM - ID ${array[0]} - type ${array[9]} - source ${array[3]}" >> /data/components/apps/log/fg-mitigation.log 2>&1
+        
+        LINE_NUM=$((LINE_NUM+1))
+
+        # Call a webhook
         if [ $DEBUG -ne 0 ]; then
-            echo `date` "Event IP address: ${array[10]}" >> /data/components/apps/log/fg-mitigation.log 2>&1
-            /usr/bin/curl  -o /dev/null -s -w "%{http_code}\n" -k -X POST -H "Authorization: Bearer $API_KEY" --data "{ \"srcip\": \"${array[10]}\",  \"fctuid\": \"A8BA0B12DA694E47BA4ADF24F8358E2F\"}" $URL >> /data/components/apps/log//fg-mitigation.log 2>&1
-            echo `date` "CURL result code $?"
+                echo `date` "Event IP address: ${array[3]}" >> /data/components/apps/log/fg-mitigation.log 2>&1
+                /usr/bin/curl  -o /dev/null -s -w "%{http_code}\n" -k -X POST -H "Authorization: Bearer $API_KEY" --data "{ \"srcip\": \"${array[3]}\",  \"fctuid\": \"A8BA0B12DA694E47BA4ADF24F8358E2F\"}" $URL >> /data/components/apps/log/fg-mitigation.log 2>&1
+                echo `date` "CURL result code $?"
         else
-            /usr/bin/curl -k -X POST -H "Authorization: Bearer $API_KEY" --data "{ \"srcip\": \"${array[10]}\",  \"fctuid\": \"A8BA0B12DA694E47BA4ADF24F8358E2F\"}" $URL
+                /usr/bin/curl -k -X POST -H "Authorization: Bearer $API_KEY" --data "{ \"srcip\": \"${array[3]}\",  \"fctuid\": \"A8BA0B12DA694E47BA4ADF24F8358E2F\"}" $URL
         fi
     fi
-
-    LINE_NUM=$((LINE_NUM+1))
-
 done < /dev/stdin
 
 echo "---- Everything completed ----"
