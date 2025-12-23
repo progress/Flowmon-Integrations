@@ -59,13 +59,9 @@ You need to make sure that script is executable
 
 ```
 [flowmon@localhost lm-mitigation\]$ ls -la
-
 total 16
-
 drwxrwxr-x 2 flowmon flowmon 4096 Dec 23 15:52 .
-
 drwx------. 12 flowmon flowmon 4096 Dec 23 15:52 ..
-
 -rwxrwxr-x 1 flowmon flowmon 5393 Dec 23 15:52 lm-timeout.py
 ```
 
