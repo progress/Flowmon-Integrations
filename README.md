@@ -11,6 +11,7 @@ You can find the available supported integrations in the table below. Depending 
 | [FortiGate](/Fortinet/FortiGate)                                              | Flowmon ADS     | Custom script       |  Yes  |
 | [FortiSIEM](/Fortinet/FortiSIEM)                                            | Flowmon ADS     | Syslog              |  -  |
 | [IBM QRadar](/IBM%20QRadar)                                                   | Flowmon ADS  | Application for QRadar    |  -  |
+| [LoadMaster](/LoadMaster)                                                   | Flowmon ADS     | Custom Script              |  Yes  |
 | [Logmanager](/Logmanager)                                                   | Flowmon ADS     | Syslog              |  -  |
 | [Microsoft Teams](/Microsoft%20Teams)                                         | Flowmon ADS     | Custom script       |  Yes  |
 | [ProLion](/ProLion)                                                         | Flowmon ADS     | Custom script       |  No  |
