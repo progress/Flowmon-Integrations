@@ -48,8 +48,7 @@ If you wish to use a different directory you would need to modify the scripts an
 There is a script prepared for removal of blocked IP addresses. On SSH console access you can run a command crontab -e to edit a cron table and add to the last line something like
 
 ```
-# Adress group address removal
-
+# ACL block address removal
 0 * * * * /home/flowmon/lm-mitigation/lm-timeout.py 2>&1
 ```
 
