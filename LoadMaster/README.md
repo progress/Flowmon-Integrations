@@ -1,9 +1,7 @@
 LoadMaster integration for input traffic blocking
+=================================================
 
-Use case for this script integration is to block some input traffic.
-
-Use-case
-========
+***Use-case***
 
 Use case for this script integration is to block some input traffic by global or virtual server specific access list rule. To achieve it we have a script which does create a record in the access list. This is now designed to work only for IPv4 addresses.
 
@@ -122,10 +120,10 @@ In Flowmon ADS, custom scripts are used to automate actions when anomalous event
 6.  Within the ADS Module, go to **Settings > Processing > Custom scripts**.
 7.  Click **\+ NEW CUSTOM SCRIPT ACTION**.
 8.  Provide a **Name** for the action.
-    *   *   1.  Select the **Perspective**.
-9.  Tick the box to make the action **Active**.
-10.  Set the **Minimum priority to be reported**.
-11.  Click **SAVE**.
+9.   Select the **Perspective**.
+10.  Tick the box to make the action **Active**.
+11.  Set the **Minimum priority to be reported**.
+12.  Click **SAVE**.
 
 ### Perspective Methods
 
