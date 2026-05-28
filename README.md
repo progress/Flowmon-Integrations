@@ -14,7 +14,7 @@ You can find the available supported integrations in the table below. Depending 
 | [LoadMaster](/LoadMaster)                                                   | Flowmon ADS     | Custom Script              |  Yes  |
 | [Logmanager](/Logmanager)                                                   | Flowmon ADS     | Syslog              |  -  |
 | [Microsoft Teams](/Microsoft%20Teams)                                         | Flowmon ADS     | Custom script       |  Yes  |
-| [ProLion](/ProLion)                                                         | Flowmon ADS     | Custom script       |  No  |
+| [ProLion](/ProLion)                                                         | Flowmon ADS     | Custom script       |  Yes  |
 | [ServiceNow](/ServiceNow)                                                   | Flowmon ADS     | Custom script       |  No  |
 | [Slack](/Slack)                                                             | Flowmon ADS     | Custom script       |  No  |
 | [Splunk](/Splunk)                                                           | Flowmon ADS     | Custom script       |  No  |
