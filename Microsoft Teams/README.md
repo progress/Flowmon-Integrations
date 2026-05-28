@@ -1,96 +1,102 @@
-# Flowmon ADS Integration with Teams
+# Flowmon ADS Integration with Microsoft Teams
 
-## Microsoft Teams Workflow Script usage
-
-Those steps are ment for the Python script teamw-webhook.py present in this directory.
+## Python Script — Teams Workflow Webhook (Recommended)
 
 ### Teams Configuration
 
-Configure incoming webhook as it is described at
+Configure a Workflow-based webhook using the guide at:
 <https://support.microsoft.com/en-us/office/create-incoming-webhooks-with-workflows-for-microsoft-teams-8ae491c7-0394-4861-ba59-055e33f75498>
 
-You need to select which group it should be sent to and when you follow
-the above guide it should get HTTP URL where the script will send (POST)
-the message.
+Alternatively, you can set it up directly in Teams without opening a browser:
 
-### **Flowmon ADS Configuration**
+1. Right-click the channel where you want ADS notifications to appear and select **Workflows**.
+2. Search for **Send a webhook alert to a channel** and select it.
+3. Follow the prompts and copy the generated Webhook URL into the script.
 
-This script has been tested with Flowmon ADS 12.5.2 and expects the
-Extended values to be enabled as well as you can use both formats. It
-means you can use it to report on IDS events as well.
+### Flowmon ADS Configuration
 
-Details on how to configure a custom script are in the [User
-Guide](https://docs.progress.com/bundle/progress-flowmon-ads-12-4/page/topics/user-guide/Custom-Actions.html#custom-scripts)
-of the Flowmon ADS.
+This script has been tested with Flowmon ADS 12.5.2. It requires **Extended values** to be enabled in ADS and supports both standard ADS events and IDS events.
 
-You have two options to provide the parameters in the script itself
-before uploading.
+Details on configuring a custom script action are in the [User Guide](https://docs.progress.com/bundle/progress-flowmon-ads-13-0/page/topics/user-guide/Event-Response.html#custom-scripts) of Flowmon ADS.
 
-![](media/script-configuration.png)
+You have two options for providing the Webhook URL and Flowmon hostname:
 
-Or to provide these by parameters when after uploading and specifying
-the URL and your Flowmon web UI hostname or IP address.
+**Option 1 — Embed directly in the script** before uploading it to ADS (recommended, see note below):
 
-However, with my test the URL is longer than 255 characters and that is
-a limit of parameter value you can use in the UI. Thus, you must provide
-the webhook URL in the script for this to work properly. The other
-option would be to use some internal URL shortening but I would not
-share it with some online ones as the URL is sensitive information and
-anyone with it can use to for posting the data.
+![Script configuration](media/script-configuration.png)
+
+**Option 2 — Pass as parameters** when configuring the action in the ADS UI:
+
+![New custom script configuration](media/new-custom-script.png)
+
+Then configure the action where you can set or adjust the parameters:
+
+![Action configuration](media/action.png)
+
+> **Note:** The Workflow webhook URL typically exceeds 255 characters, which is the parameter value limit in the ADS UI. You must therefore embed the webhook URL directly in the script rather than passing it as a parameter. Avoid using online URL shorteners — the URL is sensitive and anyone who possesses it can post messages to your channel.
+
+> **Note:** The Workflow-based webhook returns HTTP `202 Accepted` on success, unlike the older Office 365 connector which returned `200`. The script handles this correctly.
 
 ```
 usage: teams-webhook.py [-h] [-f FLOWMON] [-w WEBHOOK] [-t] [-j]
 
 options:
-
--h, \--help show this help message and exit
--f FLOWMON, \--flowmon FLOWMON IP address or URL of the local Flowmon appliance
--w WEBHOOK, \--webhook WEBHOOK Microsoft Teams Webhook URL
--t, \--test Send test message
--j, \--json Use new JSON format
+  -h, --help            show this help message and exit
+  -f FLOWMON, --flowmon FLOWMON
+                        IP address or URL of the local Flowmon appliance
+  -w WEBHOOK, --webhook WEBHOOK
+                        Microsoft Teams Webhook URL
+  -t, --test            Send test message
+  -j, --json            Use new JSON format
 ```
-For example, we can create a custom script with those parameters to be
-different from default.
 
-![](media/new-custom-script.png)
+You can also test the script from any Linux machine using the `--test` flag. The resulting message in Teams looks like the image below:
 
-And then configure action if you are using the parameters you can modify
-them there.
+![Sample message in Teams](media/sample-message.png)
 
-![](media/action.png)
+### Known Limitations
 
-You can also test it from any Linux machine when you use parameter test.
-The output in teams looks like in the image below.
+- The Workflows app cannot post in private channels as a flow bot. It can post on behalf of a user, but this means the messages will not be visible to that user in a private chat.
 
-![A screenshot of a sample message.](media/sample-message.png)
+---
 
-There is one limitation I encountered
+## Bash Script — Legacy Incoming Webhook Connector
 
-- Workflows app can\'t post in private channels as a flow bot. However,
-  it can be posted on behalf of a user.
+> **Note:** This script (`teams-webhook.sh`) uses the older Office 365 Incoming Webhook connector, which Microsoft is retiring. Use the Python script above for all new deployments.
 
-So, when you have a private chat you need to post as yourself which
-makes the new messages invisible to you.
+### Teams Configuration
 
-## These below lines are related to the original Bash shell script
-
-Microsoft Teams Incoming Webhook Script Usage
-
-**Teams Configuration**
-
-Configuration of the Incoming webhook is described at
+Configuration of the legacy Incoming Webhook connector is described at:
 <https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook>
 
-You only need to select a group and add connector there. This webhook
-will provide you with HTTPs URL where the script will send (POST) the
-messages.
+Select a channel and add the connector there. The connector provides an HTTPS URL that the script will POST messages to.
 
-![](media/webhook.png)
+![Webhook configuration](media/webhook.png)
 
-There is a limitation on how many messages could be sent through the
-webhook. The details are available at
+Note that the legacy connector has strict rate limits: 4 messages per second, 60 per 30 seconds, and 100 per 5 minutes. Deploy this only for high-priority events or on a well-tuned Flowmon ADS system. Details:
 <https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/connectors-using>
 
-Current numbers are four messages in a second and sixty in 30 seconds
-and 100 in five minutes. So, this should be deployed only on the
-important event or well configured Flowmon ADS system.
+### Flowmon ADS Configuration
+
+Details on configuring a custom script action are in the [User Guide](https://docs.progress.com/bundle/progress-flowmon-ads-12-5/page/topics/user-guide/Custom-Actions.html#custom-scripts) of Flowmon ADS.
+
+You have two options for providing the parameters. You can set them directly in the script before uploading:
+
+![Script configuration](media/script-configuration.png)
+
+Or provide them as parameters after uploading, specifying the URL and your Flowmon web UI hostname or IP address.
+
+> **Note:** The Webhook URL exceeds 255 characters, which is the parameter value limit in the ADS UI. You must embed the webhook URL directly in the script.
+
+```
+usage: teams-webhook.sh <options>
+
+Optional:
+  --webhook   MS Teams Webhook
+  --flowmon   IP / Hostname of Flowmon Web UI for links
+  --test      This will send a test message with static text
+```
+
+You can also test it from any Linux machine using the `--test` flag. The output in Teams looks like the image below:
+
+![Sample message in Teams](media/sample-message.png)

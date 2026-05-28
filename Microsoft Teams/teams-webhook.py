@@ -27,22 +27,22 @@ def parse_arguments():
     parser.add_argument("-w", "--webhook", action='store', type=str, help="Microsoft Teams Webhook URL", default=WEBHOOK)
     parser.add_argument("-t", "--test", action='store_true', help="Send test message")
     parser.add_argument("-j", "--json", action='store_true', help="Use new JSON format")
-    # Use uknow here to run even though there are some unrecongizes arguments like -j with parametre as that is how ADS is running it
-    arguments, uknown = parser.parse_known_args()
+    # Use unknown here to run even though there are some unrecognized arguments like -j with parameter as that is how ADS is running it
+    arguments, unknown = parser.parse_known_args()
     return vars(arguments)
 
-def send_to_teams(data):    
-    ads = f"https://{FLOWMON}/adsplug/events/?_adsLink=tab*Tab.Events.SimpleList|eventDetail%5B%5D*"
+def send_to_teams(data, webhook, flowmon):
+    ads = f"https://{flowmon}/adsplug/events/?_adsLink=tab*Tab.Events.SimpleList|eventDetail%5B%5D*"
 
     headers = {'Content-Type': 'application/json'}
 
     if not data['userIdentity']:
         data['userIdentity'] = 'N/A'
 
-    logging.info(f"{data['id']} - type {data['type']} - source {data['source']}") 
+    logging.info(f"{data['id']} - type {data['type']} - source {data['source']}")
     logging.debug("In the dictionary {}".format(data))
-    
-    data = json.dumps({
+
+    payload = json.dumps({
         "type": "message",
         "attachments": [
             {
@@ -72,22 +72,27 @@ def send_to_teams(data):
             }
         ]
     })
-    logging.debug("JSON {}".format(data))
+    logging.debug("JSON {}".format(payload))
 
-    response = requests.post(WEBHOOK, data=data, headers=headers)
+    try:
+        response = requests.post(webhook, data=payload, headers=headers, timeout=30)
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Failed to send to webhook: {e}")
+        return False
 
     if response.status_code != 202:
         logging.error('Cannot talk to Webhook: {} - {}'.format(response.status_code, response.content))
         return False
     else:
         logging.debug(f"Received response: {response}")
+        return True
 
 # Try to get name translation for an IP address
 def get_hostname(ip):
     try:
         hostname,alias,addreslist = socket.gethostbyaddr(ip)
         hostname = f"{hostname} ({ip})"
-    except socket.herror:
+    except (socket.herror, socket.gaierror, OSError):
         hostname = ip
 
     return hostname
@@ -107,7 +112,10 @@ def get_targets(targets):
 def main():
     global WEBHOOK, FLOWMON
 
-    args = parse_arguments() 
+    args = parse_arguments()
+
+    WEBHOOK = args['webhook']
+    FLOWMON = args['flowmon']
 
     if (args['test'] == True):
         logging.debug('Sending test event now!')
@@ -124,76 +132,82 @@ def main():
                 'userIdentity' : ''
                 }
         
-        send_to_teams(data)
+        send_to_teams(data, WEBHOOK, FLOWMON)
         exit()
 
     elif (args['json'] == True):
         # This part is taking care of looping through the stdin until EOF (Ctrl+D)    
         logging.debug("---- Starting JSON run ----")
         for line in sys.stdin:
-            json_input = line
-            data_dict = json.loads(json_input)
+            try:
+                data_dict = json.loads(line)
+            except json.JSONDecodeError as e:
+                logging.error(f"Failed to parse JSON input: {e} -- line: {line.strip()}")
+                continue
 
-            # If there is no perspective then we are going to work with IDS event and process it
-            if not 'timestamp' in data_dict:
-                data = {'timestamp' : data_dict['firstSeen'],
-                    'typeDesc'  : data_dict['category'],
-                    'type' : 'IDSP',
-                    'severity' : data_dict['severity'],
-                    'id': data_dict['id'],
-                    'source' : data_dict['srcIp'],
-                    'targets' : data_dict['dstIp'],
-                    'detail' : data_dict['signatureName'],
-                    'perspective' : data_dict['logSourceInterface'],
-                    'netFlowSource' : data_dict['logSourceIp'],
-                    'userIdentity' : ''
-                    }
-                data_dict = data
+            # If there is no timestamp then we are going to work with an IDS event and process it
+            if 'timestamp' not in data_dict:
+                data_dict = {
+                    'timestamp'     : data_dict.get('firstSeen', 'N/A'),
+                    'typeDesc'      : data_dict.get('category', 'N/A'),
+                    'type'          : 'IDSP',
+                    'severity'      : data_dict.get('severity', 'N/A'),
+                    'id'            : data_dict.get('id', 'N/A'),
+                    'source'        : data_dict.get('srcIp', 'N/A'),
+                    'targets'       : data_dict.get('dstIp', 'N/A'),
+                    'detail'        : data_dict.get('signatureName', 'N/A'),
+                    'perspective'   : data_dict.get('logSourceInterface', 'N/A'),
+                    'netFlowSource' : data_dict.get('logSourceIp', 'N/A'),
+                    'userIdentity'  : ''
+                }
 
-            # when we are working with standad ADS event we don't need to do anything just perform normal steps
-            send_to_teams(data_dict)
+            # when we are working with standard ADS event we don't need to do anything just perform normal steps
+            send_to_teams(data_dict, WEBHOOK, FLOWMON)
     else:
         # This part is taking care of looping through the stdin until EOF (Ctrl+D) and using the older format of events separated by tab
         logging.debug("---- Starting standard run ----")
         for line in sys.stdin:
             array = line.strip().split('\t')
+            receivedLength = len(array)
 
-        receivedLength = len(array)
-        
-        logging.debug('Received #{} : {}'.format(receivedLength, array))
-        # Check for length of received details to make sure we work with ADS detection
-        if receivedLength >= 15:
-            if 0 <= 16 <= len(array):
-                array.append('')
+            logging.debug('Received #{} : {}'.format(receivedLength, array))
+            # Check for length of received details to make sure we work with ADS detection
+            if receivedLength >= 15:
+                if len(array) <= 16:
+                    array.append('')
 
-            data = {'timestamp' : array[1],
-                    'typeDesc'  : array[4],
-                    'type' : array[3],
-                    'severity' : array[8],
-                    'id': array[0],
-                    'source' : array[12],
-                    'targets' : array[14],
-                    'detail' : array[9],
-                    'perspective' : array[7],
-                    'netFlowSource' : array[15],
-                    'userIdentity' : array[16]
-                    }
-        else:
-            # Try to porecess as IDS event
-            data = {'timestamp' : array[1],
-                    'typeDesc'  : array[12],
-                    'type' : 'IDSP',
-                    'severity' : array[13],
-                    'id': array[0],
-                    'source' : array[3],
-                    'targets' : array[5],
-                    'detail' : array[9],
-                    'perspective' : array[11],
-                    'netFlowSource' : array[10],
-                    'userIdentity' : ''
-                    }
-        
-        send_to_teams(data)
+                data = {'timestamp' : array[1],
+                        'typeDesc'  : array[4],
+                        'type' : array[3],
+                        'severity' : array[8],
+                        'id': array[0],
+                        'source' : array[12],
+                        'targets' : array[14],
+                        'detail' : array[9],
+                        'perspective' : array[7],
+                        'netFlowSource' : array[15],
+                        'userIdentity' : array[16]
+                        }
+            else:
+                # Try to process as IDS event (needs at least 14 fields)
+                if receivedLength < 14:
+                    logging.error('Received too few fields ({}) to process as IDS event, skipping.'.format(receivedLength))
+                    continue
+
+                data = {'timestamp' : array[1],
+                        'typeDesc'  : array[12],
+                        'type' : 'IDSP',
+                        'severity' : array[13],
+                        'id': array[0],
+                        'source' : array[3],
+                        'targets' : array[5],
+                        'detail' : array[9],
+                        'perspective' : array[11],
+                        'netFlowSource' : array[10],
+                        'userIdentity' : ''
+                        }
+
+            send_to_teams(data, WEBHOOK, FLOWMON)
 
     logging.info("---- Everything completed ----")
 
