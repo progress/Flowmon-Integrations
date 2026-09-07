@@ -94,10 +94,12 @@ do
     IFS=$'\t'
     array=($line)
     first_f=$(date --date="@${array[2]}")
-    DATA="{\"source\": \"flowmon-ads\", \"time\":\"$first_f\", \"event\":\"ads_id: ${array[0]}, ${array[3]}, \
-description: ${array[4]}, detail: ${array[7]}, Perspective: ${array[5]} \
-priority: ${array[6]}, data_feed: ${array[13]}, user_identity: ${array[14]}, source: ${array[10]} \
-event_target: ${array[12]}\"}"
+    event_text="ads_id: ${array[0]}, ${array[3]}, description: ${array[4]}, detail: ${array[7]}, Perspective: ${array[5]} priority: ${array[6]}, data_feed: ${array[13]}, user_identity: ${array[14]}, source: ${array[10]} event_target: ${array[12]}"
+    DATA=$(jq -n \
+        --arg source "flowmon-ads" \
+        --arg time "$first_f" \
+        --arg event "$event_text" \
+        '{source: $source, time: $time, event: $event}')
     echo "$LINE_NUM - ID ${array[0]} - type ${array[4]} - source ${array[10]}"
     [ $DEBUG -ne 0 ] &&  echo "$LINE_NUM - ID ${array[0]} - type ${array[4]} - source ${array[10]}" >> /tmp/hec-event.log 2>&1
     
@@ -105,9 +107,9 @@ event_target: ${array[12]}\"}"
 
     # Send the event to Splunk HEC collector
     if [ $DEBUG -ne 0 ]; then
-        /usr/bin/curl -k -X POST -H "Content-Type": "application/json" -H "$AUTH" --data "$DATA" $HEC >> /tmp/hec-event.log 2>&1
+        /usr/bin/curl -k -X POST -H "Content-Type: application/json" -H "$AUTH" --data "$DATA" $HEC >> /tmp/hec-event.log 2>&1
     else
-        /usr/bin/curl -k -X POST -H "Content-Type": "application/json" -H "$AUTH" --data "$DATA" $HEC
+        /usr/bin/curl -k -X POST -H "Content-Type: application/json" -H "$AUTH" --data "$DATA" $HEC
     fi
 
 done < /dev/stdin

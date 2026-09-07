@@ -21,6 +21,12 @@ HTTPS=443
 
 URL="https://$IP:$HTTPS/api/v2/monitor/system/automation-stitch/webhook/$WEBHOOK"
 
+validate_ip() {
+    local ipv4_regex='^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$'
+    local ipv6_regex='^[0-9A-Fa-f:]+:[0-9A-Fa-f:]*$'
+    [[ "$1" =~ $ipv4_regex || "$1" =~ $ipv6_regex ]]
+}
+
 function usage {
     cat << EOF >&2
 usage: mitigation_script.sh <options>
@@ -142,7 +148,7 @@ while read line
 do
     # Check the number of fields
     field_count=$(echo "$line" | awk -F'\t' '{print NF}')
-    if [ "$field_count" -eq 16 ]; then
+    if [ "$field_count" -eq 16 ] || [ "$field_count" -eq 17]; then
         [ $DEBUG -ne 0 ] &&  echo `date` "Processing ADS event..." >> /data/components/apps/log/fg-mitigation.log 
         echo "Processing ADS event..."
         IFS=$'\t'
@@ -151,7 +157,10 @@ do
         [ $DEBUG -ne 0 ] &&  echo "$LINE_NUM - ID ${array[0]} - type ${array[3]} - source ${array[12]}" >> /data/components/apps/log/fg-mitigation.log 2>&1
 
         # Call a webhook
-        if [ $MAC -ne 0 ];
+        if ! validate_ip "${array[12]}"; then
+            echo "ERROR: source '${array[12]}' is not a valid IP address, skipping" >&2
+            [ $DEBUG -ne 0 ] && echo `date` "ERROR: source '${array[12]}' is not a valid IP address, skipping" >> /data/components/apps/log/fg-mitigation.log
+        elif [ $MAC -ne 0 ];
         then
             MAC_ADDR="$(/usr/bin/curl "https://localhost/rest/ads/event/${array[0]}" -G -k -H "$TOKEN"  | jq '.macAddress')"
             if [ $DEBUG -ne 0 ]; then
@@ -184,6 +193,11 @@ do
         LINE_NUM=$((LINE_NUM+1))
 
         # Call a webhook
+        if ! validate_ip "${array[3]}"; then
+            echo "ERROR: source '${array[3]}' is not a valid IP address, skipping" >&2
+            [ $DEBUG -ne 0 ] && echo `date` "ERROR: source '${array[3]}' is not a valid IP address, skipping" >> /data/components/apps/log/fg-mitigation.log
+            continue
+        fi
         if [ $DEBUG -ne 0 ]; then
                 echo `date` "Event IP address: ${array[3]}" >> /data/components/apps/log/fg-mitigation.log 2>&1
                 /usr/bin/curl  -o /dev/null -s -w "%{http_code}\n" -k -X POST -H "Authorization: Bearer $API_KEY" --data "{ \"srcip\": \"${array[3]}\",  \"fctuid\": \"A8BA0B12DA694E47BA4ADF24F8358E2F\"}" $URL >> /data/components/apps/log/fg-mitigation.log 2>&1

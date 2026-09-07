@@ -12,6 +12,14 @@ WEBHOOK='https://<Your-URL-HERE>'
 # hostname / IP of Flowmon Web UI for links in the messages
 flowmon='<Your-Flowmon>'
 
+# Escapes a value into a JSON string fragment (no surrounding quotes), for safe
+# inline embedding inside a literal JSON string already present in the template.
+# Delegates to jq for full RFC 8259-compliant escaping (quotes, backslashes, and
+# all control characters), rather than hand-rolled regex.
+json_escape() {
+    printf '%s' "$1" | jq -Rs '.' | sed -e '1s/^"//' -e '$s/"$//'
+}
+
 function usage {
     cat << EOF >&2
 usage: $(basename $0) <options>
@@ -83,7 +91,7 @@ if [ $TEST -gt 0 ]; then
                 \"type\": \"AdaptiveCard\", \
                 \"body\": [ \
                     { \
-                        "type": \"Container\", \
+                        \"type\": \"Container\", \
                         \"width\": \"stretch\", \
                         \"items\": [ \
                             { \
@@ -154,22 +162,21 @@ do
     IFS=$'\t'
     array=($line)
     uid="N/A"
-    tmp_uid=`awk '{$array[14]=$array[14]};1'`
-    if [ -n "$tmp_uid" ]; then
-        uid="**${array[14]}**"
+    if [ -n "${array[14]}" ]; then
+        uid="**$(json_escape "${array[14]}")**"
     fi
     # we attempt to translate hostname
-    source=`host ${array[10]} | cut -d' ' -f 5`
-    if [[ ${source} =~ 'NXDOMAIN' ]]; then
-        source=${array[10]}
+    resolved_source=`host "${array[10]}" | cut -d' ' -f 5`
+    if [[ ${resolved_source} =~ 'NXDOMAIN' ]]; then
+        source="$(json_escape "${array[10]}")"
     else
-        source="${source} (${array[10]})"
+        source="$(json_escape "${resolved_source}") ($(json_escape "${array[10]}"))"
     fi
-    target=`host ${array[12]} | cut -d' ' -f 5`
-    if [[ ${target} =~ 'NXDOMAIN' ]]; then
-        target=${array[12]}
+    resolved_target=`host "${array[12]}" | cut -d' ' -f 5`
+    if [[ ${resolved_target} =~ 'NXDOMAIN' ]]; then
+        target="$(json_escape "${array[12]}")"
     else
-        target="${target} (${array[12]})"
+        target="$(json_escape "${resolved_target}") ($(json_escape "${array[12]}"))"
     fi
     data="{ \
     \"type\": \"message\", \
@@ -180,7 +187,7 @@ do
                 \"type\": \"AdaptiveCard\", \
                 \"body\": [ \
                     { \
-                        "type": \"Container\", \
+                        \"type\": \"Container\", \
                         \"width\": \"stretch\", \
                         \"items\": [ \
                             { \
@@ -212,7 +219,7 @@ do
                             }, \
                             { \
                                 \"type\": \"TextBlock\", \
-                                \"text\": \"${array[7]}\", \
+                                \"text\": \"$(json_escape "${array[7]}")\", \
                                 \"wrap\": true \
                             }, \
                             { \

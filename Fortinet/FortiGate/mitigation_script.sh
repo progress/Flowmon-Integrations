@@ -19,6 +19,12 @@ TIMEOUT='300'
 # FortiGate API URL
 BAN="https://$IP/api/v2/monitor/user/banned/add_users?access_token=$API_KEY"
 
+validate_ip() {
+    local ipv4_regex='^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$'
+    local ipv6_regex='^[0-9A-Fa-f:]+:[0-9A-Fa-f:]*$'
+    [[ "$1" =~ $ipv4_regex || "$1" =~ $ipv6_regex ]]
+}
+
 function usage {
     cat << EOF >&2
 usage: mitigation_script.sh <options>
@@ -116,10 +122,15 @@ do
         LINE_NUM=$((LINE_NUM+1))
 
         # BAN the source IP of the event
+        if ! validate_ip "${array[12]}"; then
+            echo "ERROR: source '${array[12]}' is not a valid IP address, skipping" >&2
+            [ $DEBUG -ne 0 ] && echo `date` "ERROR: source '${array[12]}' is not a valid IP address, skipping" >> /data/components/apps/log/fg-mitigation.log
+            continue
+        fi
         if [ $DEBUG -ne 0 ]; then
-            /usr/bin/curl -k -X POST -H "Content-Type": "application/json" --data "{ \"ip_addresses\": [\"${array[12]}\"], \"expiry\": $TIMEOUT}" $BAN >> /data/components/apps/log/fg-mitigation.log 2>&1
+            /usr/bin/curl -k -X POST -H "Content-Type: application/json" --data "{ \"ip_addresses\": [\"${array[12]}\"], \"expiry\": $TIMEOUT}" $BAN >> /data/components/apps/log/fg-mitigation.log 2>&1
         else
-            /usr/bin/curl -k -X POST -H "Content-Type": "application/json" --data "{ \"ip_addresses\": [\"${array[12]}\"], \"expiry\": $TIMEOUT}" $BAN
+            /usr/bin/curl -k -X POST -H "Content-Type: application/json" --data "{ \"ip_addresses\": [\"${array[12]}\"], \"expiry\": $TIMEOUT}" $BAN
         fi
     else
         [ $DEBUG -ne 0 ] &&  echo `date` "Processing IDS event..." >> /data/components/apps/log/fg-mitigation.log
@@ -132,10 +143,15 @@ do
         LINE_NUM=$((LINE_NUM+1))
 
         # BAN the source IP of the event
+        if ! validate_ip "${array[3]}"; then
+            echo "ERROR: source '${array[3]}' is not a valid IP address, skipping" >&2
+            [ $DEBUG -ne 0 ] && echo `date` "ERROR: source '${array[3]}' is not a valid IP address, skipping" >> /data/components/apps/log/fg-mitigation.log
+            continue
+        fi
         if [ $DEBUG -ne 0 ]; then
-            /usr/bin/curl -k -X POST -H "Content-Type": "application/json" --data "{ \"ip_addresses\": [\"${array[3]}\"], \"expiry\": $TIMEOUT}" $BAN >> /data/components/apps/log/fg-mitigation.log 2>&1
+            /usr/bin/curl -k -X POST -H "Content-Type: application/json" --data "{ \"ip_addresses\": [\"${array[3]}\"], \"expiry\": $TIMEOUT}" $BAN >> /data/components/apps/log/fg-mitigation.log 2>&1
         else
-            /usr/bin/curl -k -X POST -H "Content-Type": "application/json" --data "{ \"ip_addresses\": [\"${array[3]}\"], \"expiry\": $TIMEOUT}" $BAN
+            /usr/bin/curl -k -X POST -H "Content-Type: application/json" --data "{ \"ip_addresses\": [\"${array[3]}\"], \"expiry\": $TIMEOUT}" $BAN
         fi
     fi
 

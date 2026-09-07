@@ -110,6 +110,13 @@ done < /dev/stdin
 
 MYSID=`/usr/bin/curl -k -X POST "$loginURL" -H "Content-Type: application/json" -d "{\"user\":\"$user\",\"password\":\"$password\",\"session-name\":\"My Fun Session\",\"session-timeout\":\"3600\"}" -s | grep sid | awk -F'"' '{print $4}'`
 
+ipv4_regex='^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$'
+ipv6_regex='^[0-9A-Fa-f:]+:[0-9A-Fa-f:]*$'
+if ! [[ "${array[10]}" =~ $ipv4_regex || "${array[10]}" =~ $ipv6_regex ]]; then
+    echo "ERROR: event source '${array[10]}' is not a valid IP address, aborting mitigation" >&2
+    exit 1
+fi
+
 script_definition="fw sam -s localhost -f All -t $expiration -J src"
 script="$script_definition ${array[10]}"
 

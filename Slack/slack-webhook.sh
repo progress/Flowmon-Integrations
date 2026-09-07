@@ -12,6 +12,14 @@ webhook='https://hooks.slack.com/services/'
 # hostname / IP of Flowmon Web UI for links in the messages
 flowmon='10.100.24.66'
 
+# Escapes a value into a JSON string fragment (no surrounding quotes), for safe
+# inline embedding inside a literal JSON string already present in the template.
+# Delegates to jq for full RFC 8259-compliant escaping (quotes, backslashes, and
+# all control characters), rather than hand-rolled regex.
+json_escape() {
+    printf '%s' "$1" | jq -Rs '.' | sed -e '1s/^"//' -e '$s/"$//'
+}
+
 # This is where we point the link in the message
 
 function usage {
@@ -98,9 +106,8 @@ do
     IFS=$'\t'
     array=($line)
     uid="N/A"
-    tmp_uid=`awk '{$array[14]=$array[14]};1'`
-    if [ -n "$tmp_uid" ]; then
-        uid="*${array[14]}*"
+    if [ -n "${array[14]}" ]; then
+        uid="*$(json_escape "${array[14]}")*"
     fi
     data="{ \
   \"blocks\": [ \
@@ -129,21 +136,21 @@ do
       \"type\": \"section\", \
       \"text\": { \
         \"type\": \"mrkdwn\", \
-        \"text\": \"Source: *${array[10]}*, User identity: $uid\" \
+        \"text\": \"Source: *$(json_escape "${array[10]}")*, User identity: $uid\" \
       } \
     }, \
     { \
       \"type\": \"section\", \
       \"text\": { \
         \"type\": \"mrkdwn\", \
-        \"text\": \"Targets: ${array[12]}\" \
+        \"text\": \"Targets: $(json_escape "${array[12]}")\" \
       } \
     }, \
     { \
       \"type\": \"section\", \
       \"text\": { \
         \"type\": \"mrkdwn\", \
-        \"text\": \"${array[7]}\" \
+        \"text\": \"$(json_escape "${array[7]}")\" \
       } \
     }, \
     { \

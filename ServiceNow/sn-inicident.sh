@@ -114,11 +114,13 @@ do
     IFS=$'\t'
     array=($line)
     first_f=$(date --date="@${array[2]}")
-    DATA="{\"short_description\":\"ADS - ${array[0]} - ${array[10]} - ${array[3]}\", \
-\"category\":\"Network\", \
-\"description\":\"${array[4]} Detail: ${array[7]} First Flow: $first_f Perspective: ${array[5]} \
-Priority: ${array[6]} Data Feed: ${array[13]} User Identity: ${array[14]} Event source: ${array[10]} \
-Event target: ${array[12]}\"}"
+    short_description="ADS - ${array[0]} - ${array[10]} - ${array[3]}"
+    description="${array[4]} Detail: ${array[7]} First Flow: $first_f Perspective: ${array[5]} Priority: ${array[6]} Data Feed: ${array[13]} User Identity: ${array[14]} Event source: ${array[10]} Event target: ${array[12]}"
+    DATA=$(jq -n \
+        --arg short_description "$short_description" \
+        --arg category "Network" \
+        --arg description "$description" \
+        '{short_description: $short_description, category: $category, description: $description}')
 
     echo "$LINE_NUM - ID ${array[0]} - type ${array[4]} - source ${array[10]}"
     [ $DEBUG -ne 0 ] &&  echo "$LINE_NUM - ID ${array[0]} - type ${array[4]} - source ${array[10]}" >> /data/components/apps/log/sn-incident.log 2>&1
